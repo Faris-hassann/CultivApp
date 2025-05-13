@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details Manager</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <script src="//api.bitrix24.com/api/v1/"></script>
+    <script src="https://api.bitrix24.com/api/v1/"></script>
 </head>
 
 <body>
@@ -55,149 +55,67 @@
         const saveSection = document.getElementById('save-section');
         const saveBtn = document.getElementById('save-btn');
 
-        document.addEventListener('DOMContentLoaded', function () {
-            if (typeof BX24 !== 'undefined') {
-                initializeInBitrix();
+        window.onload = function () {
+            if (typeof BX24 !== 'undefined' && typeof BX24.init === 'function') {
+                BX24.init(() => {
+                    console.log("BX24 initialized successfully.");
+                    initializeInBitrix();
+                });
             } else {
-                initializeStandalone();
+                alert("Error: Bitrix24 SDK not loaded.");
             }
-        });
+        };
 
         saveBtn.addEventListener('click', handleSave);
 
         function initializeInBitrix() {
-            BX24.init(async function () {
-                try {
-                    const authData = BX24.getAuth?.();
-                    if (!authData?.access_token || !authData?.user_id) {
-                        throw new Error("Missing authentication data");
-                    }
-
-                    accessToken = authData.access_token;
-                    userId = authData.user_id;
-                    domain = window.location.hostname;
-
-                    if (!ALLOWED_USER_IDS.has(userId.toString())) {
-                        showError(`User ${userId} is not authorized.`);
-                        return;
-                    }
-
-                    const options = await new Promise((resolve, reject) => {
-                        BX24.getPlacementOptions(resolve, reject);
-                    });
-
-                    if (options?.ID) {
-                        dealId = options.ID;
-                        localStorage.setItem('current_deal_id', dealId);
-                        updateUI();
-                        await fetchDealProducts();
-                    } else {
-                        showError("No deal ID provided.");
-                    }
-                } catch (error) {
-                    showError("Failed to initialize Bitrix24.");
-                    console.error(error);
-                }
-            });
-        }
-
-        function initializeStandalone() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            const placementOptions = urlParams.get('PLACEMENT_OPTIONS');
-
-            if (code) {
-                handleOAuthCallback(code);
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } else if (placementOptions) {
-                try {
-                    const options = JSON.parse(decodeURIComponent(placementOptions));
-                    if (options?.ID) {
-                        dealId = options.ID;
-                        localStorage.setItem('current_deal_id', dealId);
-                        updateUI();
-                        if (accessToken) {
-                            fetchDealProducts();
-                        } else {
-                            startAuthentication();
-                        }
-                    }
-                } catch (e) {
-                    showError("Error parsing PLACEMENT_OPTIONS");
-                }
-            } else if (accessToken) {
-                updateUI();
-                if (dealId) {
-                    fetchDealProducts();
-                } else {
-                    showMessage('No deal selected.');
-                }
-            } else {
-                startAuthentication();
+            const authData = BX24.getAuth();
+            if (!authData || !authData.access_token) {
+                alert("Authentication data is missing. Please authorize the app.");
+                BX24.auth(function () {
+                    // After authorization, re-initialize
+                    console.log("Re-authorized successfully.");
+                    initializeInBitrix(); // Retry initialization
+                });
+                return;
             }
+
+            // If authenticated, proceed with your app logic
+            accessToken = authData.access_token;
+            userId = authData.user_id;
+            domain = window.location.hostname;
+
+            // Proceed with further app setup
+            console.log("Authenticated successfully", authData);
         }
 
-        function startAuthentication() {
-            const authUrl = `${BITRIX_CONFIG.AUTH_URL}?client_id=${BITRIX_CONFIG.CLIENT_ID}&redirect_uri=${BITRIX_CONFIG.REDIRECT_URI}&response_type=code`;
-            window.location.href = authUrl;
-        }
-
-        async function handleOAuthCallback(code) {
-            try {
-                const tokenData = await getBitrixToken(code);
-                accessToken = tokenData.access_token;
-                refreshToken = tokenData.refresh_token;
-                userId = tokenData.user_id;
-                domain = tokenData.domain;
-
-                localStorage.setItem('bitrix_access_token', accessToken);
-                localStorage.setItem('bitrix_refresh_token', refreshToken);
-                localStorage.setItem('bitrix_user_id', userId);
-                localStorage.setItem('bitrix_domain', domain);
-
-                if (!ALLOWED_USER_IDS.has(userId.toString())) {
-                    showError(`User ${userId} is not authorized.`);
-                    logout();
-                    return;
-                }
-
-                updateUI();
-                if (dealId) {
-                    fetchDealProducts();
-                }
-            } catch (error) {
-                showError("Authentication failed.");
-            }
-        }
-
-        async function getBitrixToken(code) {
-            const params = new URLSearchParams();
-            params.append('grant_type', 'authorization_code');
-            params.append('client_id', BITRIX_CONFIG.CLIENT_ID);
-            params.append('client_secret', BITRIX_CONFIG.CLIENT_SECRET);
-            params.append('redirect_uri', BITRIX_CONFIG.REDIRECT_URI);
-            params.append('code', code);
-
-            const response = await fetch(BITRIX_CONFIG.TOKEN_URL, {
-                method: 'POST',
-                body: params
-            });
-            return await response.json();
+        function updateUI() {
+            dealInfo.classList.remove('hidden');
+            saveSection.classList.remove('hidden');
+            dealIdDisplay.textContent = dealId || 'Not set';
         }
 
         async function fetchDealProducts() {
             try {
                 productsContainer.innerHTML = '<p class="loading-message">Loading products...</p>';
 
-                const response = await fetch(`/bitrix-api/deal/${dealId}/products`, {
-                    headers: { Authorization: `Bearer ${accessToken}` }
+                const response = await fetch(`https://${domain}/rest/crm.deal.productrows.get.json?ID=${dealId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 });
-                const result = await response.json();
-                productRows = result;
 
-                renderProducts(productRows);
+                if (response.ok) {
+                    const result = await response.json();
+                    productRows = result.result || [];  // Assuming the response has a `result` field with products
+                    renderProducts(productRows);
+                } else {
+                    throw new Error(`Failed to load products. Status: ${response.status}`);
+                }
             } catch (error) {
                 showError("Failed to load products.");
+                console.error(error);
             }
         }
 
@@ -227,12 +145,6 @@
             }
         }
 
-        function updateUI() {
-            dealInfo.classList.remove('hidden');
-            saveSection.classList.remove('hidden');
-            dealIdDisplay.textContent = dealId || 'Not set';
-        }
-
         async function handleSave() {
             const inputs = document.querySelectorAll('.price-input');
             inputs.forEach(input => {
@@ -242,17 +154,23 @@
             });
 
             try {
-                await fetch(`/bitrix-api/deal/${dealId}/products`, {
+                const response = await fetch(`https://${domain}/rest/crm.deal.productrows.set.json`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
                     },
-                    body: JSON.stringify(productRows)
+                    body: JSON.stringify({ id: dealId, fields: productRows })
                 });
-                alert('Products updated successfully!');
+
+                if (response.ok) {
+                    alert('Products updated successfully!');
+                } else {
+                    throw new Error('Failed to save product changes.');
+                }
             } catch (error) {
                 showError('Failed to save product changes.');
+                console.error(error);
             }
         }
 

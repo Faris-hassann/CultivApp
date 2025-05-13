@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details Manager</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <script src="//api.bitrix24.com/api/v1/"></script>
@@ -11,7 +12,6 @@
             padding: 20px;
             font-family: Arial, sans-serif;
         }
-
         .product-row {
             margin-bottom: 15px;
             padding: 15px;
@@ -19,30 +19,34 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
-
         .duplicate-warning {
             color: #d9534f;
             margin-bottom: 20px;
         }
-
         .profit-display {
             font-weight: bold;
             color: #5cb85c;
         }
-
         .form-control:disabled {
             background-color: #f8f9fa;
         }
-
         .hidden {
             display: none;
         }
-
         .loading-message {
             text-align: center;
             padding: 20px;
             font-style: italic;
             color: #666;
+        }
+        .deal-info-container {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .deal-info-row {
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -52,7 +56,13 @@
         <h1 class="my-4">Product Details Manager</h1>
 
         <div id="deal-info" class="mb-4 hidden">
-            <h3>Deal ID: <span id="deal-id-display">Not set</span></h3>
+            <div class="deal-info-container">
+                <h3>Deal Information</h3>
+                <div class="deal-info-row"><strong>ID:</strong> <span id="deal-id-display">Not set</span></div>
+                <div class="deal-info-row"><strong>Title:</strong> <span id="deal-title">Loading...</span></div>
+                <div class="deal-info-row"><strong>Stage:</strong> <span id="deal-stage">Loading...</span></div>
+                <div class="deal-info-row"><strong>Amount:</strong> <span id="deal-amount">Loading...</span></div>
+            </div>
             <div id="duplicate-warning" class="duplicate-warning"></div>
         </div>
 
@@ -62,6 +72,7 @@
 
         <div class="mt-4 hidden" id="save-section">
             <button id="save-btn" class="btn btn-success">Save Changes</button>
+            <div id="save-status" class="mt-2"></div>
         </div>
     </div>
 
@@ -88,10 +99,14 @@
 
         const dealInfo = document.getElementById('deal-info');
         const dealIdDisplay = document.getElementById('deal-id-display');
+        const dealTitle = document.getElementById('deal-title');
+        const dealStage = document.getElementById('deal-stage');
+        const dealAmount = document.getElementById('deal-amount');
         const duplicateWarning = document.getElementById('duplicate-warning');
         const productsContainer = document.getElementById('products-container');
         const saveSection = document.getElementById('save-section');
         const saveBtn = document.getElementById('save-btn');
+        const saveStatus = document.getElementById('save-status');
 
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof BX24 !== 'undefined') {
@@ -115,7 +130,8 @@
                     userId = authData.user_id;
                     domain = window.location.hostname;
 
-                    if (!ALLOWED_USER_IDS.has(userId.toString())) {
+                    // Better null check for userId
+                    if (!userId || !ALLOWED_USER_IDS.has(userId.toString())) {
                         showError(`User ${userId} is not authorized.`);
                         return;
                     }
@@ -128,184 +144,110 @@
                         dealId = options.ID;
                         localStorage.setItem('current_deal_id', dealId);
                         updateUI();
+                        await fetchDealInfo();
                         await fetchDealProducts();
                     } else {
                         showError("No deal ID provided.");
                     }
+                    
+                    // Resize iframe for Bitrix24
+                    if (typeof BX24 !== 'undefined') {
+                        BX24.fitWindow();
+                    }
                 } catch (error) {
-                    showError("Failed to initialize Bitrix24.");
+                    showError("Failed to initialize Bitrix24: " + error.message);
                     console.error(error);
                 }
             });
         }
 
-        function initializeStandalone() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            const placementOptions = urlParams.get('PLACEMENT_OPTIONS');
+        // ... (keep the rest of your functions the same until fetchDealProducts)
 
-            if (code) {
-                handleOAuthCallback(code);
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } else if (placementOptions) {
-                try {
-                    const options = JSON.parse(decodeURIComponent(placementOptions));
-                    if (options?.ID) {
-                        dealId = options.ID;
-                        localStorage.setItem('current_deal_id', dealId);
-                        updateUI();
-                        if (accessToken) {
-                            fetchDealProducts();
-                        } else {
-                            startAuthentication();
-                        }
-                    }
-                } catch (e) {
-                    showError("Error parsing PLACEMENT_OPTIONS");
-                }
-            } else if (accessToken) {
-                updateUI();
-                if (dealId) {
-                    fetchDealProducts();
-                } else {
-                    showMessage('No deal selected.');
-                }
-            } else {
-                startAuthentication();
-            }
-        }
-
-        function startAuthentication() {
-            const authUrl = `${BITRIX_CONFIG.AUTH_URL}?client_id=${BITRIX_CONFIG.CLIENT_ID}&redirect_uri=${BITRIX_CONFIG.REDIRECT_URI}&response_type=code`;
-            window.location.href = authUrl;
-        }
-
-        async function handleOAuthCallback(code) {
+        async function fetchDealInfo() {
             try {
-                const tokenData = await getBitrixToken(code);
-                accessToken = tokenData.access_token;
-                refreshToken = tokenData.refresh_token;
-                userId = tokenData.user_id;
-                domain = tokenData.domain;
-
-                localStorage.setItem('bitrix_access_token', accessToken);
-                localStorage.setItem('bitrix_refresh_token', refreshToken);
-                localStorage.setItem('bitrix_user_id', userId);
-                localStorage.setItem('bitrix_domain', domain);
-
-                if (!ALLOWED_USER_IDS.has(userId.toString())) {
-                    showError(`User ${userId} is not authorized.`);
-                    logout();
-                    return;
-                }
-
-                updateUI();
-                if (dealId) {
-                    fetchDealProducts();
-                }
+                const response = await callBitrixAPI('crm.deal.get', { id: dealId });
+                if (response.error) throw new Error(response.error_description);
+                
+                // Update UI with deal info
+                dealTitle.textContent = response.result.TITLE || 'N/A';
+                dealStage.textContent = response.result.STAGE_ID || 'N/A';
+                dealAmount.textContent = formatCurrency(response.result.OPPORTUNITY || 0);
             } catch (error) {
-                showError("Authentication failed.");
+                console.error("Failed to load deal info:", error);
+                dealTitle.textContent = 'Error loading deal info';
             }
-        }
-
-        async function getBitrixToken(code) {
-            const params = new URLSearchParams();
-            params.append('grant_type', 'authorization_code');
-            params.append('client_id', BITRIX_CONFIG.CLIENT_ID);
-            params.append('client_secret', BITRIX_CONFIG.CLIENT_SECRET);
-            params.append('redirect_uri', BITRIX_CONFIG.REDIRECT_URI);
-            params.append('code', code);
-
-            const response = await fetch(BITRIX_CONFIG.TOKEN_URL, {
-                method: 'POST',
-                body: params
-            });
-            return await response.json();
         }
 
         async function fetchDealProducts() {
             try {
                 productsContainer.innerHTML = '<p class="loading-message">Loading products...</p>';
-
-                const response = await fetch(`/bitrix-api/deal/${dealId}/products`, {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                const result = await response.json();
-                productRows = result;
-
+                const response = await callBitrixAPI('crm.deal.productrows.get', { id: dealId });
+                
+                if (response.error) throw new Error(response.error_description);
+                
+                productRows = response.result || [];
                 renderProducts(productRows);
             } catch (error) {
-                showError("Failed to load products.");
+                showError("Failed to load products: " + error.message);
+                console.error(error);
             }
         }
 
-        function renderProducts(products) {
-            const productMap = {};
-            const duplicates = [];
-            productsContainer.innerHTML = '';
-
-            products.forEach((product, index) => {
-                const name = product.PRODUCT_NAME || `Product ${index + 1}`;
-                if (productMap[name]) duplicates.push(name);
-                productMap[name] = true;
-
-                const row = document.createElement('div');
-                row.className = 'product-row';
-                row.innerHTML = `
-                    <div><strong>${name}</strong></div>
-                    <div>Cost: <input type="number" value="${product.PRICE}" class="form-control price-input" data-index="${index}"></div>
-                `;
-                productsContainer.appendChild(row);
-            });
-
-            if (duplicates.length > 0) {
-                duplicateWarning.textContent = `Duplicate products found: ${duplicates.join(', ')}`;
-            } else {
-                duplicateWarning.textContent = '';
-            }
-        }
-
-        function updateUI() {
-            dealInfo.classList.remove('hidden');
-            saveSection.classList.remove('hidden');
-            dealIdDisplay.textContent = dealId || 'Not set';
-        }
-
-        async function handleSave() {
-            const inputs = document.querySelectorAll('.price-input');
-            inputs.forEach(input => {
-                const index = input.dataset.index;
-                const value = parseFloat(input.value);
-                if (!isNaN(value)) productRows[index].PRICE = value;
-            });
-
+        async function callBitrixAPI(method, params = {}) {
             try {
-                await fetch(`/bitrix-api/deal/${dealId}/products`, {
+                const url = new URL(`${BITRIX_CONFIG.API_URL}${method}`);
+                url.searchParams.append('auth', accessToken);
+                
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
                     },
-                    body: JSON.stringify(productRows)
+                    body: JSON.stringify(params)
                 });
-                alert('Products updated successfully!');
+                
+                return await response.json();
             } catch (error) {
-                showError('Failed to save product changes.');
+                console.error("API call failed:", error);
+                return { error: true, error_description: error.message };
             }
         }
 
-        function showError(message) {
-            productsContainer.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        async function handleSave() {
+            try {
+                saveStatus.innerHTML = '<div class="alert alert-info">Saving changes...</div>';
+                
+                // Update product data from inputs
+                document.querySelectorAll('.price-input').forEach(input => {
+                    const index = input.dataset.index;
+                    const value = parseFloat(input.value);
+                    if (!isNaN(value)) productRows[index].PRICE = value;
+                });
+
+                // Save to Bitrix24 directly
+                const response = await callBitrixAPI('crm.deal.productrows.set', {
+                    id: dealId,
+                    rows: productRows
+                });
+
+                if (response.error) throw new Error(response.error_description);
+                
+                saveStatus.innerHTML = '<div class="alert alert-success">Changes saved successfully!</div>';
+                setTimeout(() => saveStatus.innerHTML = '', 3000);
+            } catch (error) {
+                saveStatus.innerHTML = `<div class="alert alert-danger">Failed to save: ${error.message}</div>`;
+                console.error(error);
+            }
         }
 
-        function showMessage(message) {
-            productsContainer.innerHTML = `<div class="alert alert-info">${message}</div>`;
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.reload();
-        }
+        // ... (keep the rest of your functions the same)
     </script>
 </body>
 </html>

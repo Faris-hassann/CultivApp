@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://*.bitrix24.com">
+    <title>Product Details Manager</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <script src="//api.bitrix24.com/api/v1/"></script>
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .product-row {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .duplicate-warning {
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+
+        .profit-display {
+            font-weight: bold;
+            color: #5cb85c;
+        }
+
+        .form-control:disabled {
+            background-color: #f8f9fa;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="my-4">Product Details Manager</h1>
+
+        <div id="deal-info" class="mb-4 hidden">
+            <h3>Deal ID: <span id="deal-id-display">Not set</span></h3>
+            <div id="duplicate-warning" class="duplicate-warning"></div>
+        </div>
+
+        <div id="products-container">
+            <p class="loading-message">Loading application...</p>
+        </div>
+
+        <div class="mt-4 hidden" id="save-section">
+            <button id="save-btn" class="btn btn-success">Save Changes</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const BITRIX_CONFIG = {
+            CLIENT_ID: "local.67c6f00d59bf59.01744954",
+            CLIENT_SECRET: "zLBBsIvwbSzMD01oZElfxuR94uyyBLYX5dmTs1dJ0nNtge9Ozi",
+            REDIRECT_URI: window.location.origin + window.location.pathname,
+            AUTH_URL: "https://ideal-solution.bitrix24.com/oauth/authorize/",
+            TOKEN_URL: "https://ideal-solution.bitrix24.com/oauth/token/",
+            API_URL: "https://ideal-solution.bitrix24.com/rest/"
+        };
+
+        const ALLOWED_USER_IDS = new Set(["2924", "8", "18", "1750", "36", "2688", "2690", "2716", "3108", "3114"]);
+
+        let accessToken = localStorage.getItem('bitrix_access_token') || null;
+        let refreshToken = localStorage.getItem('bitrix_refresh_token') || null;
+        let userId = localStorage.getItem('bitrix_user_id') || null;
+        let domain = localStorage.getItem('bitrix_domain') || null;
+        let dealId = localStorage.getItem('current_deal_id') || null;
+        let productRows = [];
+
+        const dealInfo = document.getElementById('deal-info');
+        const dealIdDisplay = document.getElementById('deal-id-display');
+        const duplicateWarning = document.getElementById('duplicate-warning');
+        const productsContainer = document.getElementById('products-container');
+        const saveSection = document.getElementById('save-section');
+        const saveBtn = document.getElementById('save-btn');
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof BX24 !== 'undefined') {
+                initializeInBitrix();
+            } else {
+                initializeStandalone();
+            }
+        });
+
+        saveBtn.addEventListener('click', handleSave);
+
+        function initializeInBitrix() {
+            BX24.init(async function () {
+                try {
+                    const authData = BX24.getAuth?.();
+                    if (!authData?.access_token || !authData?.user_id) {
+                        throw new Error("Missing authentication data");
+                    }
+
+                    accessToken = authData.access_token;
+                    userId = authData.user_id;
+                    domain = window.location.hostname;
+
+                    if (!ALLOWED_USER_IDS.has(userId.toString())) {
+                        showError(`User ${userId} is not authorized.`);
+                        return;
+                    }
+
+                    const options = await new Promise((resolve, reject) => {
+                        BX24.getPlacementOptions(resolve, reject);
+                    });
+
+                    if (options?.ID) {
+                        dealId = options.ID;
+                        localStorage.setItem('current_deal_id', dealId);
+                        updateUI();
+                        await fetchDealProducts();
+                    } else {
+                        showError("No deal ID provided.");
+                    }
+                } catch (error) {
+                    showError("Failed to initialize Bitrix24.");
+                    console.error(error);
+                }
+            });
+        }
+
+        function initializeStandalone() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const placementOptions = urlParams.get('PLACEMENT_OPTIONS');
+
+            if (code) {
+                handleOAuthCallback(code);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (placementOptions) {
+                try {
+                    const options = JSON.parse(decodeURIComponent(placementOptions));
+                    if (options?.ID) {
+                        dealId = options.ID;
+                        localStorage.setItem('current_deal_id', dealId);
+                        updateUI();
+                        if (accessToken) {
+                            fetchDealProducts();
+                        } else {
+                            startAuthentication();
+                        }
+                    }
+                } catch (e) {
+                    showError("Error parsing PLACEMENT_OPTIONS");
+                }
+            } else if (accessToken) {
+                updateUI();
+                if (dealId) {
+                    fetchDealProducts();
+                } else {
+                    showMessage('No deal selected.');
+                }
+            } else {
+                startAuthentication();
+            }
+        }
+
+        function startAuthentication() {
+            const authUrl = `${BITRIX_CONFIG.AUTH_URL}?client_id=${BITRIX_CONFIG.CLIENT_ID}&redirect_uri=${BITRIX_CONFIG.REDIRECT_URI}&response_type=code`;
+            window.location.href = authUrl;
+        }
+
+        async function handleOAuthCallback(code) {
+            try {
+                const tokenData = await getBitrixToken(code);
+                accessToken = tokenData.access_token;
+                refreshToken = tokenData.refresh_token;
+                userId = tokenData.user_id;
+                domain = tokenData.domain;
+
+                localStorage.setItem('bitrix_access_token', accessToken);
+                localStorage.setItem('bitrix_refresh_token', refreshToken);
+                localStorage.setItem('bitrix_user_id', userId);
+                localStorage.setItem('bitrix_domain', domain);
+
+                if (!ALLOWED_USER_IDS.has(userId.toString())) {
+                    showError(`User ${userId} is not authorized.`);
+                    logout();
+                    return;
+                }
+
+                updateUI();
+                if (dealId) {
+                    fetchDealProducts();
+                }
+            } catch (error) {
+                showError("Authentication failed.");
+            }
+        }
+
+        async function getBitrixToken(code) {
+            const params = new URLSearchParams();
+            params.append('grant_type', 'authorization_code');
+            params.append('client_id', BITRIX_CONFIG.CLIENT_ID);
+            params.append('client_secret', BITRIX_CONFIG.CLIENT_SECRET);
+            params.append('redirect_uri', BITRIX_CONFIG.REDIRECT_URI);
+            params.append('code', code);
+
+            const response = await fetch(BITRIX_CONFIG.TOKEN_URL, {
+                method: 'POST',
+                body: params
+            });
+            return await response.json();
+        }
+
+        async function fetchDealProducts() {
+            try {
+                productsContainer.innerHTML = '<p class="loading-message">Loading products...</p>';
+
+                const response = await fetch(`/bitrix-api/deal/${dealId}/products`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                const result = await response.json();
+                productRows = result;
+
+                renderProducts(productRows);
+            } catch (error) {
+                showError("Failed to load products.");
+            }
+        }
+
+        function renderProducts(products) {
+            const productMap = {};
+            const duplicates = [];
+            productsContainer.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const name = product.PRODUCT_NAME || `Product ${index + 1}`;
+                if (productMap[name]) duplicates.push(name);
+                productMap[name] = true;
+
+                const row = document.createElement('div');
+                row.className = 'product-row';
+                row.innerHTML = `
+                    <div><strong>${name}</strong></div>
+                    <div>Cost: <input type="number" value="${product.PRICE}" class="form-control price-input" data-index="${index}"></div>
+                `;
+                productsContainer.appendChild(row);
+            });
+
+            if (duplicates.length > 0) {
+                duplicateWarning.textContent = `Duplicate products found: ${duplicates.join(', ')}`;
+            } else {
+                duplicateWarning.textContent = '';
+            }
+        }
+
+        function updateUI() {
+            dealInfo.classList.remove('hidden');
+            saveSection.classList.remove('hidden');
+            dealIdDisplay.textContent = dealId || 'Not set';
+        }
+
+        async function handleSave() {
+            const inputs = document.querySelectorAll('.price-input');
+            inputs.forEach(input => {
+                const index = input.dataset.index;
+                const value = parseFloat(input.value);
+                if (!isNaN(value)) productRows[index].PRICE = value;
+            });
+
+            try {
+                await fetch(`/bitrix-api/deal/${dealId}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(productRows)
+                });
+                alert('Products updated successfully!');
+            } catch (error) {
+                showError('Failed to save product changes.');
+            }
+        }
+
+        function showError(message) {
+            productsContainer.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        }
+
+        function showMessage(message) {
+            productsContainer.innerHTML = `<div class="alert alert-info">${message}</div>`;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

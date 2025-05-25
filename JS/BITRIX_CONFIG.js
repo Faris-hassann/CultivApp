@@ -1,5 +1,3 @@
-// BITRIX_CONFIG.js
-
 export const BITRIX_CONFIG = {
     CLIENT_ID: "local.682454b2396c01.23045026",
     CLIENT_SECRET: "z54cLnGw7fnNwavGVULVqb0NabAy04GEgMTcGnDdvOUFaALrq9",
@@ -10,5 +8,5 @@ export const BITRIX_CONFIG = {
 };
 
 export const ALLOWED_USER_IDS = new Set([
-    "2924", "8", "18", "1750", "36", "2688", "2690", "2716", "3108", "3114"
+    "2924", "8", "18", "1750", "36", "2688", "2690", "2716", "3108", "3114", ""
 ]);

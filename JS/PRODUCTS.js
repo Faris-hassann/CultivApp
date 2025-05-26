@@ -295,57 +295,69 @@ export class ProductManager {
         const history = this.priceHistory[productId] || [];
         const purchaseHistory = this.purchasePriceHistory[productId] || [];
 
-        let salesHistoryHtml = '<p>No sales price history available.</p>';
+        let salesHistoryHtml = '<div class="alert alert-info">No sales price history available.</div>';
         if (history.length > 0) {
             salesHistoryHtml = `
-                <h6>Sales Price History:</h6>
-                <table class="table table-sm table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
-                            <th>Restore</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${history.map((entry, idx) => `
+                <h6 class="mb-3">Sales Price History:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
                             <tr>
-                                <td>${new Date(entry.date).toLocaleString()}</td>
-                                <td>${parseFloat(entry.price).toFixed(2)}</td>
-                                <td>${parseFloat(entry.quantity).toFixed(2)}</td>
-                                <td><button class="btn btn-sm btn-outline-primary restore-sales-price-btn" data-product-id="${productId}" data-index="${idx}" data-price="${entry.price}">Restore</button></td>
+                                <th>Date</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${history.map((entry, idx) => `
+                                <tr>
+                                    <td>${new Date(entry.date).toLocaleString()}</td>
+                                    <td>${parseFloat(entry.price).toFixed(2)}</td>
+                                    <td>${parseFloat(entry.quantity).toFixed(2)}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary restore-sales-price-btn" data-product-id="${productId}" data-index="${idx}" data-price="${entry.price}">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
         }
 
-        let purchaseHistoryHtml = '<p>No purchase price history available.</p>';
+        let purchaseHistoryHtml = '<div class="alert alert-info mt-4">No purchase price history available.</div>';
         if (purchaseHistory.length > 0) {
             purchaseHistoryHtml = `
-                <h6 class="mt-3">Purchase Price History:</h6>
-                <table class="table table-sm table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
-                            <th>Restore</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${purchaseHistory.map((entry, idx) => `
+                <h6 class="mt-4 mb-3">Purchase Price History:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
                             <tr>
-                                <td>${new Date(entry.date).toLocaleString()}</td>
-                                <td>${parseFloat(entry.price).toFixed(2)}</td>
-                                <td>${parseFloat(entry.quantity).toFixed(2)}</td>
-                                <td><button class="btn btn-sm btn-outline-info restore-purchase-price-btn" data-product-id="${productId}" data-index="${idx}" data-price="${entry.price}">Restore</button></td>
+                                <th>Date</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${purchaseHistory.map((entry, idx) => `
+                                <tr>
+                                    <td>${new Date(entry.date).toLocaleString()}</td>
+                                    <td>${parseFloat(entry.price).toFixed(2)}</td>
+                                    <td>${parseFloat(entry.quantity).toFixed(2)}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary restore-purchase-price-btn" data-product-id="${productId}" data-index="${idx}" data-price="${entry.price}">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
         }
 
@@ -355,16 +367,16 @@ export class ProductManager {
         // Add event listeners for restore buttons within the modal
         document.querySelectorAll('.restore-sales-price-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const pId = e.target.dataset.productId;
-                const priceToRestore = parseFloat(e.target.dataset.price);
+                const pId = e.target.closest('button').dataset.productId;
+                const priceToRestore = parseFloat(e.target.closest('button').dataset.price);
                 this.restorePrice(pId, priceToRestore, 'sales');
             });
         });
 
         document.querySelectorAll('.restore-purchase-price-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const pId = e.target.dataset.productId;
-                const priceToRestore = parseFloat(e.target.dataset.price);
+                const pId = e.target.closest('button').dataset.productId;
+                const priceToRestore = parseFloat(e.target.closest('button').dataset.price);
                 this.restorePrice(pId, priceToRestore, 'purchase');
             });
         });
@@ -462,7 +474,7 @@ export class ProductManager {
     renderProducts(products) {
         this.productsContainer.innerHTML = '';
         const table = document.createElement('table');
-        table.className = 'table table-bordered';
+        table.className = 'table';
         table.innerHTML = `
         <thead>
             <tr>
@@ -481,18 +493,29 @@ export class ProductManager {
         <tbody>
             ${products.map((product, index) => `
                 <tr data-product-id="${product.PRODUCT_ID}" data-index="${index}">
-                    <td>${product.PRODUCT_NAME}</td>
-                    <td><input type="number" class="readonly quantity" value="${product.QUANTITY}" readonly></td>
-                    <td><input type="number" class="purchase-price" value="${product.ORIGINAL_PRICE ? parseFloat(product.ORIGINAL_PRICE).toFixed(2) : '0.00'}" min="0.01" step="0.01"></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="product-name">${product.PRODUCT_NAME}</span>
+                            ${product.DESCRIPTION ? `<i class="bi bi-info-circle ms-2 text-muted" title="${product.DESCRIPTION}"></i>` : ''}
+                        </div>
+                    </td>
+                    <td><input type="number" class="form-control readonly quantity" value="${product.QUANTITY}" readonly></td>
+                    <td><input type="number" class="form-control purchase-price" value="${product.ORIGINAL_PRICE ? parseFloat(product.ORIGINAL_PRICE).toFixed(2) : '0.00'}" min="0.01" step="0.01"></td>
                     <td><span class="total-purchase-price">${(parseFloat(product.ORIGINAL_PRICE || 0) * product.QUANTITY).toFixed(2)}</span></td>
-                    <td><input type="number" class="price" value="${parseFloat(product.PRICE).toFixed(2)}" min="0.01" step="0.01"></td>
+                    <td><input type="number" class="form-control price" value="${parseFloat(product.PRICE).toFixed(2)}" min="0.01" step="0.01"></td>
                     <td><span class="total-sales-price">0.00</span></td>
-                    <td><input type="number" class="margin-percentage" value="0" min="0.01" step="0.01"></td>
+                    <td><input type="number" class="form-control margin-percentage" value="0" min="0.01" step="0.01"></td>
                     <td class="margin-per-piece">0.00</td>
                     <td class="margin">0.00</td>
                     <td>
-                        <i class="bi bi-pencil-square text-primary edit-description" style="cursor:pointer; font-size: 1.2rem;" title="Edit Description"></i>
-                        <i class="bi bi-clock-history text-info view-history ms-2" style="cursor:pointer; font-size: 1.2rem;" title="View Price History"></i>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary edit-description" title="Edit Description">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary view-history" title="View Price History">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('')}
@@ -501,11 +524,23 @@ export class ProductManager {
         this.productsContainer.appendChild(table);
         
         // Add event listeners for history buttons
-        document.querySelectorAll('.view-history').forEach(icon => {
-            icon.addEventListener('click', (e) => {
+        document.querySelectorAll('.view-history').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 const row = e.target.closest('tr');
                 const productId = row.getAttribute('data-product-id');
                 this.showPriceHistory(productId);
+            });
+        });
+
+        // Add event listeners for description buttons
+        document.querySelectorAll('.edit-description').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                const index = parseInt(row.getAttribute('data-index'));
+                this.activeDescriptionRow = index;
+                const product = this.productRows[index];
+                this.descriptionTextarea.value = product.DESCRIPTION || '';
+                this.descriptionModal.show();
             });
         });
     }
@@ -546,18 +581,6 @@ export class ProductManager {
                 }
             });
         }
-
-        // Attach modal open handler to action icon
-        document.querySelectorAll('.edit-description').forEach(icon => {
-            icon.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                const index = parseInt(row.getAttribute('data-index'));
-                this.activeDescriptionRow = index;
-                const product = this.productRows[index];
-                this.descriptionTextarea.value = product.DESCRIPTION || '';
-                this.descriptionModal.show();
-            });
-        });
     }
 
     initializeMarginPercentages() {

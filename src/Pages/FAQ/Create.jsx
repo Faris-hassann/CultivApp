@@ -1,0 +1,162 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Alert,
+  Toast,
+  ToastContainer,
+} from 'react-bootstrap';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Container,
+  useTheme,
+} from '@mui/material';
+import ReactQuill from 'react-quill';
+import { createFAQ } from '../../Services/FAQ';
+import 'react-quill/dist/quill.snow.css';
+
+function CreateFAQ() {
+  const theme = useTheme();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    question: '',
+    answer: '',
+  });
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.question.trim()) newErrors.question = 'Question is required';
+    if (!formData.answer.trim() || formData.answer === '<p><br></p>')
+      newErrors.answer = 'Answer is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    try {
+      await createFAQ(formData);
+      localStorage.setItem('faqCreated', 'true');
+      navigate('/FAQ');
+    } catch (error) {
+      console.error(error);
+      setSubmitError('Failed to create FAQ.');
+    }
+  };
+
+  const inputStyle = {
+    backgroundColor: theme.palette.primary[400],
+    color: 'black',
+    borderColor: theme.palette.primary[400],
+  };
+
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Card sx={{ backgroundColor: theme.palette.background.default, color: theme.palette.text.primary, borderRadius: 2, boxShadow: 3 }}>
+        <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4">Create New FAQ</Typography>
+          <Button variant="contained" color="secondary" onClick={() => navigate('/FAQ/Create')}>
+            Add New FAQ
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card
+        sx={{
+          backgroundColor: theme.palette.background.default,
+          color: theme.palette.text.primary,
+          borderRadius: 2,
+          boxShadow: 3,
+          marginTop: 3
+        }}
+      >
+        <CardContent>
+          {submitError && <Alert variant="danger">{submitError}</Alert>}
+          <Form onSubmit={handleSubmit}>
+            <Row className="mb-3">
+              <Col md={12}>
+                <Form.Group controlId="question">
+                  <Form.Label>Question</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="question"
+                    value={formData.question}
+                    onChange={handleChange}
+                    isInvalid={!!errors.question}
+                    placeholder="Enter question"
+                    style={inputStyle}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.question}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={12}>
+                <Form.Group controlId="answer">
+                  <Form.Label>Answer</Form.Label>
+                  <ReactQuill
+                    theme="snow"
+                    value={formData.answer}
+                    onChange={(value) =>
+                      setFormData((prev) => ({ ...prev, answer: value }))
+                    }
+                    style={{
+                      height: '200px',
+                      backgroundColor: 'white',
+                      color: 'black',
+                    }}
+                  />
+                  {errors.answer && (
+                    <div className="text-danger mt-2">{errors.answer}</div>
+                  )}
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Button variant="primary" type="submit">
+              Create FAQ
+            </Button>
+          </Form>
+        </CardContent>
+      </Card>
+
+      <ToastContainer position="top-end" className="p-3">
+        <Toast
+          onClose={() => setShowToast(false)}
+          show={showToast}
+          bg="success"
+          delay={2000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">Success</strong>
+          </Toast.Header>
+          <Toast.Body className="text-white">
+            FAQ created successfully!
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+    </Container >
+  );
+}
+
+export default CreateFAQ;

@@ -1,0 +1,84 @@
+/* CompanyWizard.css */
+
+#container {
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 700px;
+}
+
+.progress {
+  height: 3px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  background-color: #007bff;
+}
+
+.step-container {
+  position: relative;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.step-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid #007bff;
+  line-height: 30px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.step-circle.completed {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+#multi-step-form {
+  overflow-x: hidden;
+}
+
+/* Two columns per row using Bootstrap */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.75rem;
+  margin-left: -0.75rem;
+}
+
+.form-group {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding: 0 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Adjust spacing for smaller screens */
+@media (max-width: 768px) {
+  .form-group {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+.d-flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.ql-container.ql-snow {
+  height: 150px !important;
+}

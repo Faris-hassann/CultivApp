@@ -3,7 +3,7 @@ import axiosInstance from './axiosInstance';
 // ✅ Get all suppliers
 export const getAllSuppliers = async () => {
   try {
-    const res = await axiosInstance.get('api/Supplier');
+    const res = await axiosInstance.get('api/Supplier/GetAll');
     return res.data;
   } catch (error) {
     console.error('Error fetching all suppliers:', error);
@@ -14,7 +14,7 @@ export const getAllSuppliers = async () => {
 // ✅ Get supplier by ID
 export const getSupplierById = async (id) => {
   try {
-    const res = await axiosInstance.get(`api/Supplier/${id}`);
+    const res = await axiosInstance.get(`api/Supplier/GetBy/${id}`);
     return res.data;
   } catch (error) {
     console.error(`Error fetching supplier by ID (${id}):`, error);
@@ -25,7 +25,7 @@ export const getSupplierById = async (id) => {
 // ✅ Create new supplier
 export const createSupplier = async (data) => {
   try {
-    const res = await axiosInstance.post('api/Supplier', data);
+    const res = await axiosInstance.post('api/Supplier/Create', data);
     return res.data;
   } catch (error) {
     console.error('Error creating supplier:', error);
@@ -36,7 +36,7 @@ export const createSupplier = async (data) => {
 // ✅ Edit existing supplier
 export const editSupplier = async (id, data) => {
   try {
-    const res = await axiosInstance.put(`api/Supplier/${id}`, data);
+    const res = await axiosInstance.put(`api/Supplier/Edit/${id}`, data);
     return res.data;
   } catch (error) {
     console.error(`Error editing supplier with ID ${id}:`, error);
@@ -47,21 +47,10 @@ export const editSupplier = async (id, data) => {
 // ✅ Delete supplier
 export const deleteSupplier = async (id) => {
   try {
-    const res = await axiosInstance.delete(`api/Supplier/${id}`);
+    const res = await axiosInstance.delete(`api/Supplier/Delete/${id}`);
     return res.data;
   } catch (error) {
     console.error(`Error deleting supplier with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-// ✅ Get all suppliers from the "All" endpoint (optional)
-export const getAllSuppliersAlt = async () => {
-  try {
-    const res = await axiosInstance.get('api/Supplier/All');
-    return res.data;
-  } catch (error) {
-    console.error('Error fetching suppliers from /All endpoint:', error);
     throw error;
   }
 };

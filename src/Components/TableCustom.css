@@ -1,0 +1,158 @@
+/* Custom styles for DataTable - theme inspired */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.table-container {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2f0f0; /* theme primary[400] */
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  margin-top: 8px;
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif;
+}
+
+/* DataTables wrapper styling */
+.dataTables_wrapper {
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif;
+  color: #141b2d;
+}
+
+/* Search box styling */
+.dataTables_filter input {
+  background: #fff !important;
+  border: 2px solid #70d8bd !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif !important;
+  font-size: 0.95rem !important;
+  color: #141b2d !important;
+  transition: all 0.2s ease !important;
+}
+
+.dataTables_filter input:focus {
+  outline: none !important;
+  border-color: #4cceac !important;
+  box-shadow: 0 0 0 3px rgba(112, 216, 189, 0.1) !important;
+}
+
+.dataTables_filter label {
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif !important;
+  font-weight: 600 !important;
+  color: #141b2d !important;
+  font-size: 0.95rem !important;
+}
+
+/* "Show X entries" text styling */
+.dataTables_length label {
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif !important;
+  font-weight: 600 !important;
+  color: #141b2d !important;
+  font-size: 0.95rem !important;
+}
+
+.dataTables_length select {
+  background: #fff !important;
+  border: 2px solid #70d8bd !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif !important;
+  font-size: 0.9rem !important;
+  color: #141b2d !important;
+  margin: 0 4px !important;
+}
+
+/* Pagination buttons styling */
+.dataTables_paginate .paginate_button {
+  background: #f2f0f0 !important;
+  border: 2px solid #70d8bd !important;
+  color: #141b2d !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  margin: 0 2px !important;
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.dataTables_paginate .paginate_button:hover {
+  background: #70d8bd !important;
+  color: #fff !important;
+  border-color: #4cceac !important;
+  transform: translateY(-1px) !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+  background: #4cceac !important;
+  color: #fff !important;
+  border-color: #4cceac !important;
+  font-weight: 600 !important;
+}
+
+.dataTables_paginate .paginate_button.disabled {
+  background: #e0e0e0 !important;
+  color: #999 !important;
+  border-color: #e0e0e0 !important;
+  cursor: not-allowed !important;
+}
+
+/* Info text styling */
+.dataTables_info {
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  color: #141b2d !important;
+  font-size: 0.9rem !important;
+  padding: 12px 0 !important;
+}
+
+/* Table header styling */
+.display thead th {
+  font-weight: 600;
+  background: linear-gradient(90deg, #70d8bd 0%, #4cceac 100%); /* greenAccent[400-500] */
+  color: #141b2d; /* theme primary[500] */
+  padding: 18px 14px;
+  border-bottom: 2px solid #b7ebde; /* greenAccent[800] */
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+/* Table body styling */
+.display tbody td {
+  padding: 15px 12px;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #e0e0e0;
+  color: #222;
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif;
+}
+
+.display tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.display {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2f0f0; /* theme primary[400] */
+}
+
+.display tbody tr {
+  background: #f2f0f0 !important; /* theme primary[400] */
+}
+
+.display tbody tr:hover {
+  background: #dbf5ee !important; /* greenAccent[100] */
+  transition: background 0.2s;
+}
+
+.display thead th, .display tbody td {
+  font-family: 'Poppins', 'Source Sans Pro', 'Roboto', sans-serif;
+}
+
+/* Action buttons styling */
+.MuiIconButton-root {
+  transition: all 0.2s ease !important;
+}
+
+.MuiIconButton-root:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+} 

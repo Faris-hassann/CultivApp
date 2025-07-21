@@ -45,10 +45,14 @@ const ContactSection = () => {
       sx={{
         py: 10,
         background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
       }}
     >
-      <Container maxWidth="xl">
-        <Box sx={{ textAlign: "center", mb: 8 }}>
+      <Container maxWidth="xl" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: { xs: 'auto', md: '80vh' } }}>
+        <Box sx={{ textAlign: "center", mb: 8, width: '100%' }}>
           <Typography
             variant="h1"
             sx={{
@@ -74,10 +78,11 @@ const ContactSection = () => {
           </Typography>
         </Box>
 
-        <Box sx={{ maxWidth: 1000, mx: "auto" }}>
-          <Card sx={{ p: 5, boxShadow: 3, borderRadius: 5, bgcolor: 'white' }}>
-            <Grid container spacing={6}>
-              <Grid item xs={12} md={4}>
+        <Box sx={{ maxWidth: 1000, mx: "auto", width: "100%", display: 'flex', justifyContent: 'center' }}>
+          <Card sx={{ p: { xs: 2, md: 4 }, boxShadow: 3, borderRadius: 5, bgcolor: 'white', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Grid container spacing={6} justifyContent="center" alignItems="center">
+              {/* Contact Info, Email, Location - responsive */}
+              <Grid item xs={12} md={12} lg={4}>
                 <Typography variant="h4" fontWeight="bold" color={themeSettings.text.primary} sx={{ mb: 3 }}>
                   Contact Information
                 </Typography>
@@ -95,6 +100,13 @@ const ContactSection = () => {
                       secondaryTypographyProps={{ fontSize: "1rem", color: themeSettings.text.secondary }}
                     />
                   </ListItem>
+                </List>
+              </Grid>
+              <Grid item xs={12} md={12} lg={4}>
+                <Typography variant="h4" fontWeight="bold" color={themeSettings.text.primary} sx={{ mb: 3 }}>
+                  Email
+                </Typography>
+                <List>
                   <ListItem sx={{ px: 0 }}>
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: themeSettings.primary.main, width: 48, height: 48 }}>
@@ -108,6 +120,13 @@ const ContactSection = () => {
                       secondaryTypographyProps={{ fontSize: "1rem", color: themeSettings.text.secondary }}
                     />
                   </ListItem>
+                </List>
+              </Grid>
+              <Grid item xs={12} md={12} lg={4}>
+                <Typography variant="h4" fontWeight="bold" color={themeSettings.text.primary} sx={{ mb: 3 }}>
+                  Location
+                </Typography>
+                <List>
                   <ListItem sx={{ px: 0 }}>
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: themeSettings.primary.main, width: 48, height: 48 }}>
@@ -124,12 +143,12 @@ const ContactSection = () => {
                 </List>
               </Grid>
 
-              <Grid item xs={12} md={8}>
+              <Grid item xs={12} md={8} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography variant="h4" fontWeight="bold" color={themeSettings.text.primary} sx={{ mb: 3 }}>
                   Send us a Message
                 </Typography>
-                <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <Grid container spacing={3}>
+                <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2, px: { xs: 0, md: 1 }, alignItems: 'center', width: '100%' }}>
+                  <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <TextField 
                         fullWidth 

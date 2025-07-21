@@ -1,42 +1,68 @@
-import axios from 'axios';
-import BASE_URL from '../config';
+import axiosInstance from './axiosInstance';
 
-// Fetch all Categories
+// ✅ Get all Categories
 export const getAllCategories = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}api/Category/GetAll`);
-    return response.data;
+    const res = await axiosInstance.get('api/Category/GetAll');
+    return res.data;
   } catch (error) {
     console.error('Error fetching Categories:', error);
     throw error;
   }
 };
 
-// Post Company Data
-export const createCategory = async (data) => {
-  const response = await axios.post(`${BASE_URL}api/Category/Create`, data, {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  return response.data;
-};
-
-// Get a single company by ID
+// ✅ Get Category by ID
 export const getCategoryById = async (id) => {
-  const response = await axios.get(`${BASE_URL}api/Category/GetBy/${id}`);
-  return response.data;
+  try {
+    const res = await axiosInstance.get(`api/Category/GetBy/${id}`);
+    console.log(res.data);
+    return res.data;
+  } catch (error) {
+    console.error(`Error fetching Category ID ${id}:`, error);
+    throw error;
+  }
 };
 
-// Update a company
+// ✅ Create Category
+export const createCategory = async (data) => {
+  try {
+    const res = await axiosInstance.post('api/Category/Create', data);
+    return res.data;
+  } catch (error) {
+    console.error('Error creating Category:', error);
+    throw error;
+  }
+};
+
+// ✅ Update Category
 export const updateCategory = async (id, data) => {
-  const response = await axios.put(`${BASE_URL}api/Category/Edit/${id}`, data);
-  return response.data;
+  try {
+    const res = await axiosInstance.put(`api/Category/Edit/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.error(`Error updating Category ID ${id}:`, error);
+    throw error;
+  }
 };
 
-// Delete a category by ID
+// ✅ Delete Category
 export const deleteCategory = async (id) => {
-  const response = await axios.delete(`${BASE_URL}api/Category/Delete/${id}`);
-  return response.data;
+  try {
+    const res = await axiosInstance.delete(`api/Category/Delete/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error deleting Category ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// ✅ Get Categories where Status == true
+export const getTrueCategories = async () => {
+  try {
+    const res = await axiosInstance.get('api/Category/GetAllTrue');
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching true Categories:', error);
+    throw error;
+  }
 };

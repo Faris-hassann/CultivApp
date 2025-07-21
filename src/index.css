@@ -13,6 +13,30 @@ body,
 .app {
   display: flex;
   position: relative;
+  min-height: 100vh;
+}
+
+/* Hide scrollbars for sidebar and its children */
+.pro-sidebar,
+.pro-sidebar-inner,
+.pro-menu,
+.pro-menu-item {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE 10+ */
+}
+.pro-sidebar::-webkit-scrollbar,
+.pro-sidebar-inner::-webkit-scrollbar,
+.pro-menu::-webkit-scrollbar,
+.pro-menu-item::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Responsive main content */
+.content {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: auto;
 }
 
 ::-webkit-scrollbar {

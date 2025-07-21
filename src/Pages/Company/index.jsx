@@ -29,15 +29,15 @@ function Companies() {
 
   // Detect flag for creation/update from localStorage
   useEffect(() => {
-    const created = localStorage.getItem('companyCreated');
-    const updated = localStorage.getItem('companyUpdated');
+    const created = localStorage.getItem('CompanyCreated');
+    const updated = localStorage.getItem('CompanyUpdated');
 
     if (created === 'true') {
       setShowToast('created');
-      localStorage.removeItem('companyCreated');
+      localStorage.removeItem('CompanyCreated');
     } else if (updated === 'true') {
       setShowToast('updated');
-      localStorage.removeItem('companyUpdated');
+      localStorage.removeItem('CompanyUpdated');
     }
   }, []);
 

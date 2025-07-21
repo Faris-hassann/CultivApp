@@ -70,7 +70,7 @@ const CreateBranch = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const requiredFields = ['name', 'category', 'location', 'email', 'phoneNumber', 'bitrixID', 'imageUrl', 'subCompanyID'];
+    const requiredFields = ['name', 'category', 'location', 'email', 'phoneNumber', 'imageUrl', 'subCompanyID'];
     const missing = requiredFields.filter(field => !formData[field]);
     if (missing.length) {
       setSubmitError(`Please fill: ${missing.join(', ')}`);
@@ -160,13 +160,6 @@ const CreateBranch = () => {
                 <Form.Label>Phone Number *</Form.Label>
                 <Form.Control type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="Enter phone number" style={inputStyle} />
               </Form.Group></Col>
-              <Col md={6}><Form.Group controlId="bitrixID">
-                <Form.Label>Bitrix ID *</Form.Label>
-                <Form.Control type="text" name="bitrixID" value={formData.bitrixID} onChange={handleInputChange} placeholder="Enter Bitrix ID" style={inputStyle} />
-              </Form.Group></Col>
-            </Row>
-
-            <Row className="mb-3">
               <Col md={6}><Form.Group controlId="subCompanyID">
                 <Form.Label>SubCompany *</Form.Label>
                 <Form.Select name="subCompanyID" value={formData.subCompanyID} onChange={handleInputChange} style={inputStyle}>
@@ -174,6 +167,9 @@ const CreateBranch = () => {
                   {subCompanies.map(sub => <option key={sub.Id} value={sub.Id}>{sub.Name}</option>)}
                 </Form.Select>
               </Form.Group></Col>
+            </Row>
+
+            <Row className="mb-3">
               <Col md={6}><Form.Group controlId="imageUrl">
                 <Form.Label>Image *</Form.Label>
                 <Form.Control type="file" name="imageUrl" onChange={handleInputChange} style={inputStyle} />

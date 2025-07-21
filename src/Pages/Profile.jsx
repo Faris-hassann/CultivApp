@@ -1,208 +1,238 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from 'react';
 import {
-  Avatar,
-  TextField,
-  Button,
-  Grid,
-  Typography,
   Box,
+  Card,
+  CardContent,
+  Typography,
+  Avatar,
+  Grid,
+  Divider,
+  Button,
+  TextField,
   IconButton,
-  Paper,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Cancel";
-import LogoutIcon from "@mui/icons-material/Logout";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { getAuth, clearAuth } from "../utils/auth";
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+const primaryBlue = '#1976d2';
+const cardGray = '#e9eef6';
+const fontFamily = 'Roboto, "Open Sans", Arial, sans-serif';
+
+const initialUser = {
+  firstName: 'Ahmed',
+  lastName: 'Hassan',
+  email: 'ahmed.hassan@email.com',
+  nationalId: '1234567890',
+  photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+};
 
 export default function Profile() {
-  const auth = getAuth();
-  const fileInputRef = useRef(null);
-
-  const [profile, setProfile] = useState({
-    firstName: auth?.fullname?.split(" ")[0] || "First",
-    lastName: auth?.fullname?.split(" ")[1] || "Last",
-    phone: "+20 100 123 4567",
-    birthdate: new Date(1995, 4, 15),
-    nationalId: "29805150123456",
-    company: auth?.companyID || "Rwafi Logistics",
-    subCompany: auth?.subCompanyID || "Cargo Division",
-    branch: auth?.branchID || "Cairo Branch",
-    avatarUrl: "",
-  });
-
   const [editMode, setEditMode] = useState(false);
+  const [user, setUser] = useState(initialUser);
+  const [form, setForm] = useState(user);
+  const [photoPreview, setPhotoPreview] = useState(user.photo);
 
   const handleEdit = () => setEditMode(true);
-
   const handleCancel = () => {
-    setProfile((prev) => ({ ...prev, ...getProfileFromAuth(auth) }));
+    setForm(user);
+    setPhotoPreview(user.photo);
     setEditMode(false);
   };
-
-  const handleSave = () => {
-    setEditMode(false);
-    // You can optionally POST updated profile data to the backend here
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAvatarClick = () => {
-    if (editMode && fileInputRef.current) fileInputRef.current.click();
-  };
-
-  const handleAvatarChange = (e) => {
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        setProfile((prev) => ({ ...prev, avatarUrl: ev.target.result }));
+        setPhotoPreview(ev.target.result);
+        setForm({ ...form, photo: ev.target.result });
       };
       reader.readAsDataURL(file);
     }
   };
-
-  const handleLogout = () => {
-    clearAuth();
-    window.location.href = "/";
+  const handleSave = () => {
+    setUser(form);
+    setEditMode(false);
   };
-
-  const getProfileFromAuth = (authData) => ({
-    firstName: authData?.fullname?.split(" ")[0] || "First",
-    lastName: authData?.fullname?.split(" ")[1] || "Last",
-    phone: "+20 100 123 4567",
-    birthdate: new Date(1995, 4, 15),
-    nationalId: "29805150123456",
-    company: authData?.companyID || "Rwafi Logistics",
-    subCompany: authData?.subCompanyID || "Cargo Division",
-    branch: authData?.branchID || "Cairo Branch",
-    avatarUrl: "",
-  });
 
   return (
     <Box
       sx={{
-        py: 4,
-        display: "flex",
-        justifyContent: "center",
-        bgcolor: "#f0f4ff",
-        minHeight: "100vh",
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, #f5f7fa 0%, ${cardGray} 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily,
+        py: 6,
       }}
     >
-      <Paper elevation={4} sx={{ maxWidth: 700, width: "100%", p: 4 }}>
-        <Box display="flex" flexDirection="column" alignItems="center" mb={4}>
-          <Box position="relative">
-            <IconButton onClick={handleAvatarClick} sx={{ p: 0 }}>
-              <Avatar sx={{ width: 96, height: 96 }} src={profile.avatarUrl}>
-                {profile.firstName[0]}
-              </Avatar>
-            </IconButton>
-            {editMode && (
-              <IconButton
-                onClick={handleAvatarClick}
-                sx={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  bgcolor: "primary.main",
-                  color: "white",
-                }}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              onChange={handleAvatarChange}
-              disabled={!editMode}
-            />
-          </Box>
-          <Typography variant="h5" mt={2} fontWeight={600} textAlign="center">
-            {profile.firstName} {profile.lastName}
+      <Card
+        sx={{
+          p: { xs: 2, md: 4 },
+          borderRadius: 5,
+          boxShadow: 6,
+          bgcolor: '#fff',
+          minWidth: 340,
+          maxWidth: 420,
+          width: '100%',
+        }}
+      >
+        {/* Back to Home Button */}
+        <Box
+          component="a"
+          href="/"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1,
+            color: '#666666',
+            mb: 3,
+            textDecoration: 'none',
+            transition: '0.2s',
+            fontWeight: 500,
+            fontSize: '1rem',
+            '&:hover': { color: primaryBlue },
+          }}
+        >
+          <ArrowBackIcon fontSize="small" />
+          <Typography variant="body2" fontWeight={500} sx={{ fontFamily }}>
+            Back to Home
           </Typography>
         </Box>
-
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Grid container spacing={3}>
-            {[
-              "firstName",
-              "lastName",
-              "phone",
-              "nationalId",
-              "company",
-              "subCompany",
-              "branch",
-            ].map((name) => (
-              <Grid item xs={12} sm={6} key={name}>
-                <TextField
-                  fullWidth
-                  label={name
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/^./, (str) => str.toUpperCase())}
-                  name={name}
-                  value={profile[name]}
-                  onChange={handleInputChange}
-                  disabled={!editMode}
+        <CardContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <Avatar
+              src={photoPreview}
+              alt={user.firstName + ' ' + user.lastName}
+              sx={{ width: 100, height: 100, mb: 2, border: `3px solid ${primaryBlue}` }}
+            />
+            {editMode && (
+              <>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="profile-photo-upload"
+                  type="file"
+                  onChange={handlePhotoChange}
                 />
-              </Grid>
-            ))}
-            <Grid item xs={12} sm={6}>
-              <DatePicker
-                label="Birthdate"
-                value={profile.birthdate}
-                onChange={(newValue) =>
-                  setProfile((prev) => ({ ...prev, birthdate: newValue }))
-                }
-                disabled={!editMode}
-                renderInput={(params) => <TextField {...params} fullWidth />}
-              />
+                <label htmlFor="profile-photo-upload">
+                  <IconButton color="primary" component="span">
+                    <EditIcon />
+                  </IconButton>
+                </label>
+              </>
+            )}
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 'bold',
+                color: primaryBlue,
+                mb: 1,
+                fontFamily,
+                letterSpacing: 0.5,
+              }}
+            >
+              Profile
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" sx={{ color: primaryBlue, fontWeight: 600, fontSize: '1.1rem', mb: 0.5, fontFamily }}>First Name</Typography>
+              {editMode ? (
+                <TextField
+                  name="firstName"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  fullWidth
+                  size="small"
+                  sx={{ mb: 2, bgcolor: '#f5f7fa', borderRadius: 2 }}
+                />
+              ) : (
+                <Typography variant="body1" sx={{ color: '#222', fontSize: '1.1rem', mb: 2, fontFamily }}>{user.firstName}</Typography>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" sx={{ color: primaryBlue, fontWeight: 600, fontSize: '1.1rem', mb: 0.5, fontFamily }}>Last Name</Typography>
+              {editMode ? (
+                <TextField
+                  name="lastName"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  fullWidth
+                  size="small"
+                  sx={{ mb: 2, bgcolor: '#f5f7fa', borderRadius: 2 }}
+                />
+              ) : (
+                <Typography variant="body1" sx={{ color: '#222', fontSize: '1.1rem', mb: 2, fontFamily }}>{user.lastName}</Typography>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" sx={{ color: primaryBlue, fontWeight: 600, fontSize: '1.1rem', mb: 0.5, fontFamily }}>Email</Typography>
+              {editMode ? (
+                <TextField
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  fullWidth
+                  size="small"
+                  sx={{ mb: 2, bgcolor: '#f5f7fa', borderRadius: 2 }}
+                />
+              ) : (
+                <Typography variant="body1" sx={{ color: '#222', fontSize: '1.1rem', mb: 2, fontFamily }}>{user.email}</Typography>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" sx={{ color: primaryBlue, fontWeight: 600, fontSize: '1.1rem', mb: 0.5, fontFamily }}>National ID</Typography>
+              {editMode ? (
+                <TextField
+                  name="nationalId"
+                  value={form.nationalId}
+                  onChange={handleChange}
+                  fullWidth
+                  size="small"
+                  sx={{ mb: 2, bgcolor: '#f5f7fa', borderRadius: 2 }}
+                />
+              ) : (
+                <Typography variant="body1" sx={{ color: '#222', fontSize: '1.1rem', mb: 2, fontFamily }}>{user.nationalId}</Typography>
+              )}
             </Grid>
           </Grid>
-        </LocalizationProvider>
-
-        <Box
-          mt={4}
-          display="flex"
-          justifyContent="space-between"
-          flexWrap="wrap"
-          gap={2}
-        >
-          {!editMode ? (
-            <Button onClick={handleEdit} startIcon={<EditIcon />}>
-              Edit
-            </Button>
-          ) : (
-            <Box display="flex" gap={2}>
-              <Button onClick={handleSave} startIcon={<SaveIcon />}>
-                Save
-              </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
+            {editMode ? (
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<SaveIcon />}
+                  onClick={handleSave}
+                  sx={{ textTransform: 'none', bgcolor: primaryBlue, borderRadius: 3, px: 4 }}
+                >
+                  Save
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleCancel}
+                  sx={{ textTransform: 'none', color: primaryBlue, borderColor: primaryBlue, borderRadius: 3, px: 4 }}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
               <Button
-                onClick={handleCancel}
-                startIcon={<CancelIcon />}
-                variant="outlined"
+                variant="contained"
+                startIcon={<EditIcon />}
+                onClick={handleEdit}
+                sx={{ textTransform: 'none', bgcolor: primaryBlue, borderRadius: 3, px: 4 }}
               >
-                Cancel
+                Edit Profile
               </Button>
-            </Box>
-          )}
-          <Button
-            onClick={handleLogout}
-            color="error"
-            startIcon={<LogoutIcon />}
-          >
-            Logout
-          </Button>
-        </Box>
-      </Paper>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
     </Box>
   );
 }

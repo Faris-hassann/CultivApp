@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
 import {
   AppBar,
   Toolbar,
@@ -19,15 +18,19 @@ import {
   Divider,
   Container,
 } from "@mui/material"
-import { Menu as MenuIcon, Close as CloseIcon, Person as PersonIcon } from "@mui/icons-material"
+import {
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Person as PersonIcon,
+} from "@mui/icons-material"
+import { getAuth } from "../utils/auth"
 
 const Header = () => {
-  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  // Get the home page theme settings for light mode
   const themeSettings = {
     primary: {
       main: "#1976d2",
@@ -50,42 +53,38 @@ const Header = () => {
     { name: "Services", href: "#services" },
     { name: "Partners", href: "#partners" },
     { name: "About", href: "#about" },
-    { name: "Members", href: "/Members" },
+    { name: "Member", href: "/Members" },
     { name: "Contact", href: "#contact" },
-    { name: "FAQ", href: "/faq" },
+    { name: "FAQ", href: "/ExternalFAQ" },
   ]
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
+    const handleScroll = () => setIsScrolled(window.scrollY > 10)
     window.addEventListener("scroll", handleScroll)
+
+    // Check if user is logged in
+    const auth = getAuth()
+    setIsLoggedIn(!!auth.token)
+
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen)
-  }
+  const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
+  const handleMenuClick = (event) => setAnchorEl(event.currentTarget)
+  const handleMenuClose = () => setAnchorEl(null)
 
-  const handleMenuClick = (event) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
-
-  const scrollToSection = (href) => {
+  const scrollToSectionOrNavigate = (href) => {
     if (href.startsWith("#")) {
       const element = document.querySelector(href)
       if (element) {
         element.scrollIntoView({ behavior: "smooth" })
+      } else {
+        window.location.href = "/"
       }
-    } else if (href.startsWith("/")) {
-      // Navigate to a different page using React Router
-      navigate(href)
+      setMobileOpen(false)
+    } else {
+      window.location.href = href
     }
-    setMobileOpen(false)
   }
 
   const drawer = (
@@ -119,13 +118,10 @@ const Header = () => {
       <List>
         {navigation.map((item) => (
           <ListItem key={item.name} disablePadding>
-            <ListItemButton onClick={() => scrollToSection(item.href)}>
+            <ListItemButton onClick={() => scrollToSectionOrNavigate(item.href)}>
               <ListItemText
                 primary={item.name}
-                primaryTypographyProps={{
-                  fontSize: "1.1rem",
-                  fontWeight: 500
-                }}
+                primaryTypographyProps={{ fontSize: "1.1rem", fontWeight: 500 }}
               />
             </ListItemButton>
           </ListItem>
@@ -139,11 +135,13 @@ const Header = () => {
       <AppBar
         position="fixed"
         sx={{
-          bgcolor: isScrolled ? "rgba(255, 255, 255, 0.95)" : "transparent",
-          backdropFilter: isScrolled ? "blur(10px)" : "none",
-          boxShadow: isScrolled ? 1 : 0,
+          bgcolor: "rgba(20,27,45,0.85)",
+          color: "#fff",
+          boxShadow: 1,
           transition: "all 0.3s ease",
-          borderBottom: isScrolled ? "1px solid rgba(0, 0, 0, 0.1)" : "none",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(8px)",
+          zIndex: 1301,
         }}
       >
         <Container maxWidth="xl">
@@ -206,7 +204,7 @@ const Header = () => {
               {navigation.map((item) => (
                 <Button
                   key={item.name}
-                  onClick={() => scrollToSection(item.href)}
+                  onClick={() => scrollToSectionOrNavigate(item.href)}
                   sx={{
                     color: themeSettings.text.primary,
                     fontWeight: 500,
@@ -224,14 +222,16 @@ const Header = () => {
               ))}
             </Box>
 
-            {/* Desktop Avatar */}
-            <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: "center" }}>
-              <IconButton onClick={handleMenuClick}>
-                <Avatar sx={{ bgcolor: themeSettings.primary.main }}>
-                  <PersonIcon sx={{ color: "white" }} />
-                </Avatar>
-              </IconButton>
-            </Box>
+            {/* Desktop Avatar (only when logged in) */}
+            {isLoggedIn && (
+              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: "center" }}>
+                <IconButton onClick={handleMenuClick}>
+                  <Avatar sx={{ bgcolor: themeSettings.primary.main }}>
+                    <PersonIcon sx={{ color: "white" }} />
+                  </Avatar>
+                </IconButton>
+              </Box>
+            )}
 
             {/* Mobile Menu Button */}
             <IconButton
@@ -269,10 +269,30 @@ const Header = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Dashboard</MenuItem>
-        <Divider />
-        <MenuItem onClick={handleMenuClose}>Sign Out</MenuItem>
+        {isLoggedIn ? (
+          <>
+            <MenuItem onClick={handleMenuClose} component="a" href="/Profile">Profile</MenuItem>
+            <MenuItem onClick={handleMenuClose} component="a" href="/dashboard">Dashboard</MenuItem>
+            <Divider />
+            <MenuItem
+              onClick={() => {
+                localStorage.clear()
+                window.location.href = "/signin"
+              }}
+            >
+              Sign Out
+            </MenuItem>
+          </>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              handleMenuClose()
+              window.location.href = "/SignIn"
+            }}
+          >
+            Sign In
+          </MenuItem>
+        )}
       </Menu>
     </>
   )

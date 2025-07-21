@@ -15,8 +15,9 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import { getAllTypeOfUsers, deleteTypeOfUser } from '../../Services/TypeUser';
+import LoadingModal from '../../Components/LoadingModal';
 
-const columns = ['#', 'Type Name', 'Created By', 'Created On'];
+const columns = ['#', 'Type Name', 'Created On'];
 
 function TypeOfUserPage() {
   const theme = useTheme();
@@ -26,6 +27,7 @@ function TypeOfUserPage() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(null); // 'created' | 'updated' | 'deleted'
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     const created = localStorage.getItem('TypeOfUserCreated');
@@ -48,7 +50,6 @@ function TypeOfUserPage() {
         id: item.id || item.ID,
         '#': index + 1,
         'Type Name': item.name || item.Name || 'N/A',
-        'Created By': item.createdBy || 'N/A',
         'Created On': item.createdON
           ? new Date(item.createdON).toLocaleString()
           : 'N/A',
@@ -82,6 +83,7 @@ function TypeOfUserPage() {
     });
 
     if (result.isConfirmed) {
+      setModalLoading(true);
       try {
         await deleteTypeOfUser(row.id);
         await fetchTypes();
@@ -89,12 +91,15 @@ function TypeOfUserPage() {
       } catch (err) {
         console.error('Delete failed:', err);
         Swal.fire('Error', 'Failed to delete the user type.', 'error');
+      } finally {
+        setModalLoading(false);
       }
     }
   };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <LoadingModal open={modalLoading} message="Processing, please wait..." />
       {/* Header */}
       <Card
         sx={{
@@ -122,11 +127,11 @@ function TypeOfUserPage() {
       <Card
         sx={{
           mt: 3,
-          backgroundColor: theme.palette.background.default,
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           color: theme.palette.text.primary,
-          borderRadius: 2,
-          boxShadow: 1,
-          p: 2,
+          borderRadius: 3,
+          boxShadow: 2,
+          p: 3,
         }}
       >
         <Box>
@@ -144,6 +149,7 @@ function TypeOfUserPage() {
                 onEdit: handleEdit,
                 onDelete: handleDelete,
               }}
+              customRender={{}}
             />
           )}
         </Box>

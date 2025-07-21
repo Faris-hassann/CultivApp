@@ -8,9 +8,12 @@ import {
   Verified as VerifiedIcon,
 } from "@mui/icons-material"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+
 
 const Hero = () => {
   const [mounted, setMounted] = useState(false)
+  const navigate = useNavigate()
 
   // Get the home page theme settings for light mode
   const themeSettings = {
@@ -53,7 +56,7 @@ const Hero = () => {
         position: "relative",
         background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
         overflow: "hidden",
-        pt: { xs: 8, lg: 10 },
+        pt: { xs: 4, lg: 6 },
       }}
     >
       {/* Background Elements */}
@@ -102,6 +105,7 @@ const Hero = () => {
                   fontSize: "1.2rem",
                   py: 1,
                   px: 2,
+                  mt: 3, // Added margin top
                 }}
               />
 
@@ -146,99 +150,103 @@ const Hero = () => {
                 complexities so you can focus on growth and success.
               </Typography>
 
-              {/* CTA Buttons */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  gap: 3,
-                  justifyContent: { xs: "center", lg: "flex-start" },
-                  mb: 6,
-                }}
-              >
-                <Button
-                  variant="contained"
-                  size="large"
-                  endIcon={<ArrowForwardIcon />}
+              {/* CTA Buttons and Trust Indicators - aligned left together */}
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: { xs: "center", lg: "flex-start" }, gap: 0 }}>
+                {/* CTA Buttons */}
+                <Box
                   sx={{
-                    px: 6,
-                    py: 2,
-                    fontSize: "1.3rem",
-                    borderRadius: 3,
-                    textTransform: "none",
-                    bgcolor: themeSettings.primary.main,
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 3,
+                    justifyContent: { xs: "center", lg: "flex-start" },
+                    mb: 3,
                   }}
                 >
-                  Get Started Today
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  startIcon={<PlayArrowIcon />}
-                  sx={{
-                    px: 6,
-                    py: 2,
-                    fontSize: "1.3rem",
-                    borderRadius: 3,
-                    border: `1px solid ${themeSettings.primary.main}`,
-                    textTransform: "none",
-                    color: themeSettings.primary.main,
-                  }}
-                >
-                  Watch Demo
-                </Button>
-              </Box>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate("/SignIn")}
+                    sx={{
+                      px: 6,
+                      py: 2,
+                      fontSize: "1.3rem",
+                      borderRadius: 3,
+                      textTransform: "none",
+                      bgcolor: themeSettings.primary.main,
+                    }}
+                  >
+                    Get Started Today
+                  </Button>
 
-              {/* Trust Indicators */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  alignItems: "center",
-                  justifyContent: { xs: "center", lg: "flex-start" },
-                  gap: 6,
-                  pt: 3,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-                  <Box sx={{ display: "flex", ml: -1 }}>
-                    {[1, 2, 3, 4].map((i) => (
-                      <Avatar
-                        key={i}
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          bgcolor: themeSettings.primary.main,
-                          color: "white",
-                          border: "3px solid white",
-                          ml: -1,
-                        }}
-                      >
-                        {i}
-                      </Avatar>
-                    ))}
-                  </Box>
-                  <Box>
-                    <Typography variant="h5" fontWeight="bold" color="black">
-                      500+ Companies
-                    </Typography>
-                    <Typography variant="h6" color={themeSettings.text.secondary}>
-                      Trust Rwafi
-                    </Typography>
-                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    startIcon={<PlayArrowIcon />}
+                    sx={{
+                      px: 6,
+                      py: 2,
+                      fontSize: "1.3rem",
+                      borderRadius: 3,
+                      border: `1px solid ${themeSettings.primary.main}`,
+                      textTransform: "none",
+                      color: themeSettings.primary.main,
+                    }}
+                  >
+                    Watch Demo
+                  </Button>
                 </Box>
+                {/* Trust Indicators */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    alignItems: "center",
+                    justifyContent: { xs: "center", lg: "flex-start" },
+                    gap: 6,
+                    pt: 0,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                    <Box sx={{ display: "flex", ml: -1 }}>
+                      {[1, 2, 3, 4].map((i) => (
+                        <Avatar
+                          key={i}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: themeSettings.primary.main,
+                            color: "white",
+                            border: "3px solid white",
+                            ml: -1,
+                          }}
+                        >
+                          {i}
+                        </Avatar>
+                      ))}
+                    </Box>
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold" color="black">
+                        500+ Companies
+                      </Typography>
+                      <Typography variant="h6" color={themeSettings.text.secondary}>
+                        Trust Rwafi
+                      </Typography>
+                    </Box>
+                  </Box>
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-                  <Avatar sx={{ bgcolor: themeSettings.success.light, width: 40, height: 40 }}>
-                    <CheckCircleIcon sx={{ color: themeSettings.success.main, fontSize: "1.5rem" }} />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h5" fontWeight="bold" color={themeSettings.success.main}>
-                      99% Success Rate
-                    </Typography>
-                    <Typography variant="h6" color={themeSettings.text.secondary}>
-                      Guaranteed Results
-                    </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                    <Avatar sx={{ bgcolor: themeSettings.success.light, width: 40, height: 40 }}>
+                      <CheckCircleIcon sx={{ color: themeSettings.success.main, fontSize: "1.5rem" }} />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold" color={themeSettings.success.main}>
+                        99% Success Rate
+                      </Typography>
+                      <Typography variant="h6" color={themeSettings.text.secondary}>
+                        Guaranteed Results
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </Box>
@@ -247,7 +255,19 @@ const Hero = () => {
 
           {/* Visual Element */}
           <Grid item xs={12} lg={6}>
-            <Box sx={{ position: "relative", maxWidth: 600, mx: "auto" }}>
+            <Box
+              sx={{
+                position: "relative",
+                maxWidth: 600,
+                mx: "auto",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: { xs: 6, md: 8, lg: 0 }, // margin bottom for small/medium
+                minHeight: { xs: 400, md: 450, lg: "auto" },
+              }}
+            >
               {/* Main Dashboard Card */}
               <Card
                 sx={{
@@ -256,6 +276,17 @@ const Hero = () => {
                   borderRadius: 5,
                   bgcolor: "white",
                   minHeight: 320,
+                  width: "100%",
+                  maxWidth: 420,
+                  cursor: { xs: "pointer", md: "pointer", lg: "default" },
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  '&:hover': {
+                    transform: { xs: "scale(1.03)", md: "scale(1.03)", lg: "none" },
+                    boxShadow: { xs: 6, md: 8, lg: "0 8px 32px rgba(60, 60, 60, 0.10)" },
+                  },
+                }}
+                onClick={() => {
+                  // Optional: Add navigation or modal open here for interactivity
                 }}
               >
                 <CardContent>
@@ -271,7 +302,7 @@ const Hero = () => {
                         height: 40,
                         borderRadius: "50%",
                         color: "white",
-                    }}
+                      }}
                     >
                       <Typography variant="h4" fontWeight="bold">
                         R

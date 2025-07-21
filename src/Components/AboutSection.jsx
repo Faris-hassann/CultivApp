@@ -6,14 +6,8 @@ import {
   Grid,
   Card,
   Avatar,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Chip,
-  Button,
-  useTheme,
-  useMediaQuery,
+  Button
 } from "@mui/material"
 import { 
   CheckCircle as CheckCircleIcon,
@@ -28,27 +22,10 @@ import {
   Star as StarIcon,
   ArrowForward as ArrowForwardIcon,
 } from "@mui/icons-material"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 const AboutSection = () => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const [animate, setAnimate] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const element = document.getElementById('about')
-      if (element) {
-        const rect = element.getBoundingClientRect()
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0
-        setAnimate(isVisible)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    handleScroll() // Check initial state
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  const [animate] = useState(true)
 
   // Get the home page theme settings for light mode
   const themeSettings = {
@@ -416,7 +393,6 @@ const AboutSection = () => {
                         },
                         opacity: animate ? 1 : 0,
                         transform: animate ? "translateY(0)" : "translateY(20px)",
-                        transition: `all 0.5s ease-out ${0.8 + index * 0.1}s`,
                       }}
                     >
                       <Avatar 

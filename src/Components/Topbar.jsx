@@ -17,7 +17,7 @@ const Topbar = () => {
   const handleProfileClick = () => {
     const userId = localStorage.getItem("userId");
     if (userId) {
-      navigate(`/Users/View/${userId}`);
+      navigate(`/Employees/View/${userId}`);
     } else {
       console.warn("User ID not found in localStorage.");
     }

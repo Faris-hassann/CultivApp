@@ -288,7 +288,7 @@ const PartnerCompanies = () => {
         </Box>
 
         {/* Mobile Grid */}
-        <Grid container spacing={2} sx={{ mt: 6, display: { xs: "flex", lg: "none" } }}>
+        <Grid container spacing={2} sx={{ mt: 6, display: 'none' }}>
           {partnerCompanies.slice(0, 8).map((company) => (
             <Grid item xs={6} sm={4} md={3} key={company.id}>
               <Card sx={{ textAlign: "center", p: 2 }}>
